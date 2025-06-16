@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "Gold_df_Clientes",
+						"referenceName": "Gold_df_Hechos_ventas",
 						"type": "DataFlowReference"
 					},
 					"compute": {
