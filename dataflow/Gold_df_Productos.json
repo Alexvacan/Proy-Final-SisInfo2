@@ -36,9 +36,6 @@
 					"name": "join1"
 				},
 				{
-					"name": "select1"
-				},
-				{
 					"name": "derivedColumn1"
 				},
 				{
@@ -48,10 +45,10 @@
 					"name": "derivedColumn3"
 				},
 				{
-					"name": "select2"
+					"name": "sort1"
 				},
 				{
-					"name": "sort1"
+					"name": "select3"
 				}
 			],
 			"scriptLines": [
@@ -76,31 +73,21 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> source2",
-				"derivedColumn1, derivedColumn2 join(codigo_producto == derivedColumn2@id_producto,",
+				"derivedColumn1, derivedColumn2 join(codigo_categoria == derivedColumn2@id_producto,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
-				"select2 select(mapColumn(",
-				"          id_producto,",
-				"          codigo_producto,",
-				"          nombre_producto,",
-				"          precio_limpio,",
-				"          categoria,",
-				"          subcategoria,",
-				"          linea_producto,",
-				"          requiere_mantenimiento",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1",
-				"source1 derive(codigo_producto = replace(substring(codigo_producto, 0, 5), '-', '')\r",
+				"source1 derive(codigo_categoria = replace(substring(codigo_producto, 0, 5), '-', ''),",
+				"          codigo_productos_ventas = substring(codigo_producto, 7)\r",
 				") ~> derivedColumn1",
 				"source2 derive(id_producto = replace(substring(id_producto, 0, 5), '_', '')) ~> derivedColumn2",
-				"join1 derive(precio_limpio = iif(isNull(costo_producto), toDecimal(-1), costo_producto)\r",
-				") ~> derivedColumn3",
+				"join1 derive(precio_limpio = iif(isNull(costo_producto), toDecimal(-1), costo_producto)) ~> derivedColumn3",
+				"select3 sort(asc(id_producto, true)) ~> sort1",
 				"derivedColumn3 select(mapColumn(",
 				"          id_producto = source1@id_producto,",
-				"          codigo_producto,",
+				"          codigo_categoria,",
+				"          codigo_productos_ventas,",
 				"          nombre_producto,",
 				"          precio_limpio,",
 				"          linea_producto,",
@@ -109,15 +96,15 @@
 				"          requiere_mantenimiento",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select2",
-				"select1 sort(asc(id_producto, true)) ~> sort1",
+				"     skipDuplicateMapOutputs: true) ~> select3",
 				"sort1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          id_producto as integer,",
-				"          codigo_producto as string,",
+				"          cod_categoria as string,",
+				"          Cod_Producto_ventas as string,",
 				"          nombre_producto as string,",
-				"          costo_producto as decimal(18,2),",
+				"          precio_limpio as decimal(18,2),",
 				"          linea_producto as string,",
 				"          categoria as string,",
 				"          subcategoria as string,",
@@ -136,9 +123,10 @@
 				"     reportSuccessOnError: true,",
 				"     mapColumn(",
 				"          id_producto,",
-				"          codigo_producto,",
+				"          cod_categoria = codigo_categoria,",
+				"          Cod_Producto_ventas = codigo_productos_ventas,",
 				"          nombre_producto,",
-				"          costo_producto = precio_limpio,",
+				"          precio_limpio,",
 				"          linea_producto,",
 				"          categoria,",
 				"          subcategoria,",

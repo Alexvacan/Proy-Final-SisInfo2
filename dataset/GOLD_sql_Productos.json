@@ -17,7 +17,11 @@
 				"precision": 10
 			},
 			{
-				"name": "codigo_producto",
+				"name": "cod_categoria",
+				"type": "varchar"
+			},
+			{
+				"name": "Cod_Producto_ventas",
 				"type": "varchar"
 			},
 			{
@@ -25,7 +29,7 @@
 				"type": "varchar"
 			},
 			{
-				"name": "costo_producto",
+				"name": "precio_limpio",
 				"type": "decimal",
 				"precision": 18,
 				"scale": 2
