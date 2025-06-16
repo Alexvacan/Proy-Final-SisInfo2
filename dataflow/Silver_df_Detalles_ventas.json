@@ -1,0 +1,89 @@
+{
+	"name": "Silver_df_Detalles_ventas",
+	"properties": {
+		"folder": {
+			"name": "SILVER"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "BRONZE_Detalles_ventas",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "SILVER_sql_Detalle_ventas",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "cast1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          numero_orden as string,",
+				"          codigo_producto as string,",
+				"          id_cliente as integer,",
+				"          fecha_orden as date,",
+				"          fecha_envio as date,",
+				"          ventas as integer,",
+				"          fecha_orden_invalida as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n  d.sls_ord_num AS numero_orden,\\n  d.sls_prd_key AS codigo_producto,\\n  d.sls_cust_id AS id_cliente,\\n  TRY_CONVERT(date, d.sls_order_dt) AS fecha_orden,\\n  TRY_CONVERT(date, d.sls_ship_dt) AS fecha_envio,\\n  TRY_CAST(d.sls_sales AS int) AS ventas,\\n  CASE \\n    WHEN TRY_CONVERT(date, d.sls_order_dt) IS NULL THEN 1\\n    ELSE 0\\n  END AS fecha_orden_invalida\\nFROM BRONZE.DETALLE_VENTAS d',",
+				"     format: 'query') ~> source1",
+				"source1 cast(output(",
+				"          numero_orden as string,",
+				"          codigo_producto as string,",
+				"          id_cliente as integer,",
+				"          fecha_orden as date 'yyyy-MM-dd',",
+				"          fecha_envio as date 'yyyy-MM-dd',",
+				"          ventas as integer,",
+				"          fecha_orden_invalida as integer",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"cast1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          numero_orden as string,",
+				"          codigo_producto as string,",
+				"          id_cliente as integer,",
+				"          fecha_orden as date,",
+				"          fecha_envio as date,",
+				"          ventas as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'allErrors',",
+				"     transactionCommit: 'single',",
+				"     reportSuccessOnError: true,",
+				"     mapColumn(",
+				"          numero_orden,",
+				"          codigo_producto,",
+				"          id_cliente,",
+				"          fecha_orden,",
+				"          fecha_envio,",
+				"          ventas",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

@@ -1,0 +1,41 @@
+{
+	"name": "SILVER_sql_Clientes",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sql_dw_ventas",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "SILVER"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id_cliente",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "codigo_cliente",
+				"type": "varchar"
+			},
+			{
+				"name": "nombre",
+				"type": "varchar"
+			},
+			{
+				"name": "apellido",
+				"type": "varchar"
+			},
+			{
+				"name": "genero",
+				"type": "char"
+			}
+		],
+		"typeProperties": {
+			"schema": "SILVER",
+			"table": "CLIENTES"
+		}
+	}
+}

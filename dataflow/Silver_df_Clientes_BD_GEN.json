@@ -1,0 +1,72 @@
+{
+	"name": "Silver_df_Clientes_BD_GEN",
+	"properties": {
+		"folder": {
+			"name": "SILVER"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "BRONZE_sql_Clientes_BD_GEN",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "SILVER_sql_Clientes_BD_GEN",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "cast1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CID as string,",
+				"          fecha_nacimiento as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n  c.CID,\\n  CONVERT(date, c.BDATE) AS fecha_nacimiento\\nFROM BRONZE.CLIENTES_BD_GEN c',",
+				"     format: 'query') ~> source1",
+				"source1 cast(output(",
+				"          CID as string,",
+				"          fecha_nacimiento as date 'yyyy-MM-dd'",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"cast1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CID as string,",
+				"          fecha_nacimiento as date,",
+				"          genero as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'allErrors',",
+				"     transactionCommit: 'single',",
+				"     reportSuccessOnError: true,",
+				"     mapColumn(",
+				"          CID,",
+				"          fecha_nacimiento",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

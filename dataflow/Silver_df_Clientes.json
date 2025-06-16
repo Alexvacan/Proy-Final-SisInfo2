@@ -1,0 +1,83 @@
+{
+	"name": "Silver_df_Clientes",
+	"properties": {
+		"folder": {
+			"name": "SILVER"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "BRONZE_sql_Clientes",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "SILVER_sql_Clientes",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "cast1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id_cliente as integer,",
+				"          codigo_cliente as string,",
+				"          nombre as string,",
+				"          apellido as string,",
+				"          genero as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n  c.cst_id AS id_cliente,\\n  c.cst_key AS codigo_cliente,\\n  c.cst_firstname AS nombre,\\n  c.cst_lastname AS apellido,\\n  c.cst_gndr AS genero\\nFROM BRONZE.CLIENTES c\\nWHERE c.cst_id IS NOT NULL -- evita los NULLs\\n  AND c.cst_id IN (\\n    SELECT cst_id\\n    FROM BRONZE.CLIENTES\\n    GROUP BY cst_id\\n    HAVING COUNT(*) = 1 \\n  )',",
+				"     format: 'query') ~> source1",
+				"source1 cast(output(",
+				"          id_cliente as integer,",
+				"          codigo_cliente as string,",
+				"          nombre as string,",
+				"          apellido as string,",
+				"          genero as string",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"cast1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_cliente as integer,",
+				"          codigo_cliente as string,",
+				"          nombre as string,",
+				"          apellido as string,",
+				"          genero as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'allErrors',",
+				"     transactionCommit: 'single',",
+				"     reportSuccessOnError: true,",
+				"     mapColumn(",
+				"          id_cliente,",
+				"          codigo_cliente,",
+				"          nombre,",
+				"          apellido,",
+				"          genero",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

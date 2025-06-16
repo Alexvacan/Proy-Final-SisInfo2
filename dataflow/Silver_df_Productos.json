@@ -1,0 +1,83 @@
+{
+	"name": "Silver_df_Productos",
+	"properties": {
+		"folder": {
+			"name": "SILVER"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "BRONZE_sql_Productos",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "SILVER_sql_Productos",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "cast1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id_producto as integer,",
+				"          codigo_producto as string,",
+				"          nombre_producto as string,",
+				"          costo_producto as decimal(18,2),",
+				"          linea_producto as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n  TRY_CAST(p.prd_id AS int) AS id_producto,\\n  p.prd_key AS codigo_producto,\\n  p.prd_nm AS nombre_producto,\\n  TRY_CAST(NULLIF(p.prd_cost, \\'\\') AS decimal(18,2)) AS costo_producto,\\n  p.prd_line AS linea_producto\\nFROM BRONZE.PRODUCTOS p',",
+				"     format: 'query') ~> source1",
+				"source1 cast(output(",
+				"          id_producto as integer,",
+				"          codigo_producto as string,",
+				"          nombre_producto as string,",
+				"          costo_producto as decimal(18,2),",
+				"          linea_producto as string",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"cast1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_producto as integer,",
+				"          codigo_producto as string,",
+				"          nombre_producto as string,",
+				"          costo_producto as decimal(18,2),",
+				"          linea_producto as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'allErrors',",
+				"     transactionCommit: 'single',",
+				"     reportSuccessOnError: true,",
+				"     mapColumn(",
+				"          id_producto,",
+				"          codigo_producto,",
+				"          nombre_producto,",
+				"          costo_producto,",
+				"          linea_producto",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
