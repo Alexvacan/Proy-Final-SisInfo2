@@ -1,0 +1,183 @@
+{
+	"name": "Gold_df_Clientes",
+	"properties": {
+		"folder": {
+			"name": "GOLD"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SILVER_sql_Clientes",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "SILVER_sql_Clientes_location",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
+				},
+				{
+					"dataset": {
+						"referenceName": "SILVER_sql_Clientes_BD_GEN",
+						"type": "DatasetReference"
+					},
+					"name": "source3"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "GOLD_sql_Clientes",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "sort1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "derivedColumn3"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "derivedColumn4"
+				},
+				{
+					"name": "select3"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id_cliente as integer,",
+				"          codigo_cliente as string,",
+				"          nombre as string,",
+				"          apellido as string,",
+				"          genero as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source(output(",
+				"          CID as string,",
+				"          pais as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source2",
+				"source(output(",
+				"          CID as string,",
+				"          fecha_nacimiento as date,",
+				"          genero as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source3",
+				"source1 select(mapColumn(",
+				"          id_cliente,",
+				"          codigo_cliente,",
+				"          nombre,",
+				"          apellido,",
+				"          genero",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select2 sort(asc(id_cliente, true)) ~> sort1",
+				"derivedColumn1 filter(!isNull(id_cliente) && id_cliente > 0 && !isNull(codigo_cliente) && length(nombre) > 2\r",
+				") ~> filter1",
+				"select1 derive(nombre = iif(isNull(nombre) || nombre == \"\", \"SinNombre\", nombre)\r",
+				") ~> derivedColumn1",
+				"source2 derive(CID = upper(trim(replace(CID, \"-\", \"\")))) ~> derivedColumn2",
+				"filter1, derivedColumn2 join(codigo_cliente == CID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join2 derive(pais = iif(isNull(pais) || pais == \"\", \"No ingresado\", pais)\r",
+				") ~> derivedColumn3",
+				"derivedColumn3 select(mapColumn(",
+				"          id_cliente,",
+				"          codigo_cliente,",
+				"          nombre,",
+				"          apellido,",
+				"          genero = select1@genero,",
+				"          fecha_nacimiento,",
+				"          pais",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"join1, select3 join(codigo_cliente == select3@CID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"source3 derive(CID = replace(replace(CID, \"NAS\", \"\"), \"AW\", \"AW\")) ~> derivedColumn4",
+				"derivedColumn4 select(mapColumn(",
+				"          CID,",
+				"          fecha_nacimiento",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"sort1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_cliente as integer,",
+				"          codigo_cliente as string,",
+				"          nombre as string,",
+				"          apellido as string,",
+				"          genero as string,",
+				"          fecha_nacimiento as date,",
+				"          pais as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'allErrors',",
+				"     transactionCommit: 'single',",
+				"     reportSuccessOnError: true,",
+				"     mapColumn(",
+				"          id_cliente,",
+				"          codigo_cliente,",
+				"          nombre,",
+				"          apellido,",
+				"          fecha_nacimiento,",
+				"          pais",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

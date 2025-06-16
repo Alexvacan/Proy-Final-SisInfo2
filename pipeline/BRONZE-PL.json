@@ -176,7 +176,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "Bronze_Detalles_Ventas",
+						"referenceName": "Bronze_df_Detalles_Ventas",
 						"type": "DataFlowReference"
 					},
 					"compute": {
