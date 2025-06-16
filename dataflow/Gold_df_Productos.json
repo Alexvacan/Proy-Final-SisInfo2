@@ -22,7 +22,15 @@
 					"name": "source2"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "GOLD_sql_Productos",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "join1"
@@ -41,6 +49,9 @@
 				},
 				{
 					"name": "select2"
+				},
+				{
+					"name": "sort1"
 				}
 			],
 			"scriptLines": [
@@ -98,7 +109,41 @@
 				"          requiere_mantenimiento",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select2"
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select1 sort(asc(id_producto, true)) ~> sort1",
+				"sort1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_producto as integer,",
+				"          codigo_producto as string,",
+				"          nombre_producto as string,",
+				"          costo_producto as decimal(18,2),",
+				"          linea_producto as string,",
+				"          categoria as string,",
+				"          subcategoria as string,",
+				"          requiere_mantenimiento as boolean",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'allErrors',",
+				"     transactionCommit: 'single',",
+				"     reportSuccessOnError: true,",
+				"     mapColumn(",
+				"          id_producto,",
+				"          codigo_producto,",
+				"          nombre_producto,",
+				"          costo_producto = precio_limpio,",
+				"          linea_producto,",
+				"          categoria,",
+				"          subcategoria,",
+				"          requiere_mantenimiento",
+				"     )) ~> sink1"
 			]
 		}
 	}
