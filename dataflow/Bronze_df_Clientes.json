@@ -57,7 +57,7 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'allErrors',",
 				"     transactionCommit: 'single',",
-				"     reportSuccessOnError: false,",
+				"     reportSuccessOnError: true,",
 				"     mapColumn(",
 				"          cst_id,",
 				"          cst_key,",
